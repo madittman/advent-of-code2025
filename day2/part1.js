@@ -2,33 +2,51 @@ const fs = require('fs');
 const path = require('path');
 
 /**
- * Counting every time a full rotation hits zero
+ * Sum up all invalid IDs
  */
-function solve(rotations) {
-    let currentPosition = 50;
-    let zeroCount = 0;
-    const dialSize = 100;
+function solve(ranges) {
+    let invalid_ids = []
 
-    rotations.forEach(line => {
-        const direction = line.charAt(0);
-        const rotation = parseInt(line.substring(1), 10);
-
-        if (direction === 'R') {
-            currentPosition = (currentPosition + rotation) % dialSize;
-        } else if (direction === 'L') {
-            // The Javascript modulo fix for negative numbers
-            currentPosition = ((currentPosition - rotation) % dialSize + dialSize) % dialSize;
+    // Get numbers from range string
+    function get_numbers_from_range(range) {
+        let split_range = range.split("-");
+        let start = Number(split_range[0]);
+        let end = Number(split_range[1]);
+        let numbers = [];
+        while (start !== end) {
+            numbers.push(start);
+            start++;
         }
-        // Check if zero was hit
-        if (currentPosition === 0) {
-            zeroCount++;
+        numbers.push(end);
+        return numbers;
+    }
+
+    function is_invalid(number) {
+        let half_length = Math.floor(number.length / 2);
+        let first_half = number.substring(0, half_length);
+        let second_half = number.substring(half_length);
+        return first_half === second_half;
+    }
+
+    ranges.forEach(range => {
+        let numbers = get_numbers_from_range(range);
+        for (let number of numbers) {
+            if (is_invalid(String(number))) {
+                invalid_ids.push(number);
+            }
         }
     });
-    return zeroCount;
+
+    // Sum up invalid IDs
+    let sum = 0;
+    invalid_ids.forEach(x => {
+        sum += x;
+    });
+    return sum;
 }
 
 // Read and pass input
 const inputPath = path.join(__dirname, 'input');
 const rawInput = fs.readFileSync(inputPath, 'utf-8');
-const rotations = rawInput.trim().split('\n');
-console.log(`Final Password: ${solve(rotations)}`);
+const ranges = rawInput.trim().split(',');
+console.log(`Answer: ${solve(ranges)}`);
